@@ -86,7 +86,7 @@
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         document.getElementById("countdown").innerHTML =
-          `روز ${days} ساعت ${hours} دقیقه ${minutes} ثانیه ${seconds} مانده 😐`;
+          `${days} روز ${hours} ساعت ${minutes} دقیقه ${seconds} ثانیه مانده 😐`
       }
 
       setInterval(updateCountdown, 1000);
