@@ -63,21 +63,6 @@
         color: white; /* رنگ سفید برای برچسب */
         margin-top: 5px;
     }
-
-    button {
-      margin: 10px;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      font-size: 1.1em;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: rgba(255, 255, 255, 0.4);
-    }
   </style>
 </head>
 <body>
@@ -102,14 +87,10 @@
         </div>
     </div>
 
-    <audio id="bg-music" loop>
+    <audio id="bg-music" loop autoplay muted>
       <source src="madrese.mp3" type="audio/mpeg">
       مرورگر شما از پخش موسیقی پشتیبانی نمی‌کند.
     </audio>
-
-    <br>
-    <button onclick="document.getElementById('bg-music').play()">▶️ پخش آهنگ</button>
-    <button onclick="document.getElementById('bg-music').pause()">⏸️ توقف</button>
   </div>
 
   <script>
@@ -130,3 +111,16 @@
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         document.getElementById("days-number").innerHTML = days;
+        document.getElementById("hours-number").innerHTML = hours;
+        document.getElementById("minutes-number").innerHTML = minutes;
+        document.getElementById("seconds-number").innerHTML = seconds;
+      }
+
+      setInterval(updateCountdown, 1000);
+    }
+
+    // تاریخ شروع مدرسه (۱ مهر ۱۴۰۴ → 22 سپتامبر 2025)
+    startCountdown(new Date("Sep 22, 2025 00:00:00").getTime());
+  </script>
+</body>
+</html>
