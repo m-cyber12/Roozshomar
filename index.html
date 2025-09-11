@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>روز شمار تا شروع مدرسه</title>
-  <style>
+<style>
     body {
       margin: 0;
       padding: 0;
@@ -18,24 +18,25 @@
       height: 100vh;
     }
 
-    .content {
-      background: rgba(0, 0, 60, 0.8); /* سورمه‌ای نیمه‌شفاف */
-      padding: 30px;
-      border-radius: 15px;
-      color: white;
-      max-width: 90%;
-    }
+    ..content {
+  background: rgba(0, 0, 60, 0.6); /* سورمه‌ای نیمه‌شفاف */
+  padding: 30px;
+  border-radius: 15px;
+  color: white;
+  max-width: 90%;
+}
+
 
     h1 {
-      font-size: 2.2em;
+      font-size: 1.8em;
       margin: 10px 0;
     }
 
     .timer-container {
         display: flex;
         justify-content: center;
-        gap: 15px; /* فاصله بین دایره‌ها */
-        margin: 20px 0;
+        gap: 10px; /* فاصله بین دایره‌ها */
+        margin: 15px 0;
         flex-wrap: wrap; /* برای نمایش بهتر در موبایل */
     }
 
@@ -45,33 +46,33 @@
         align-items: center;
         background-color: rgba(0, 0, 80, 0.7); /* رنگ پس‌زمینه برای واحدها */
         border-radius: 15px; /* گرد کردن گوشه‌ها */
-        padding: 10px 15px;
-        width: 80px; /* عرض هر واحد */
-        height: 100px; /* ارتفاع هر واحد */
+        padding: 8px 12px;
+        width: 70px; /* عرض هر واحد */
+        height: 90px; /* ارتفاع هر واحد */
         justify-content: space-around; /* برای توزیع عمودی محتوا */
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* سایه برای عمق */
     }
 
     .timer-unit .number {
-        font-size: 2.5em; /* سایز بزرگتر برای عدد */
+        font-size: 2em; /* سایز بزرگتر برای عدد */
         font-weight: bold;
         color: #66ccff; /* رنگ آبی روشن برای اعداد */
     }
 
     .timer-unit .label {
-        font-size: 1em; /* سایز معمولی برای برچسب */
+        font-size: 0.9em; /* سایز معمولی برای برچسب */
         color: white; /* رنگ سفید برای برچسب */
         margin-top: 5px;
     }
 
     button {
-      margin: 10px;
-      padding: 12px 24px;
+      margin: 8px;
+      padding: 10px 20px;
       border: none;
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.2);
       color: white;
-      font-size: 1.1em;
+      font-size: 1em;
       cursor: pointer;
     }
 
@@ -79,6 +80,7 @@
       background: rgba(255, 255, 255, 0.4);
     }
   </style>
+
 </head>
 <body>
   <div class="content">
