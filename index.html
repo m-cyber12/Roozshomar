@@ -34,6 +34,10 @@
     #countdown {
       font-size: 1.8em;
       margin: 20px 0;
+      /* تغییرات جدید برای نمایش بهتر */
+      min-width: 250px;
+      max-width: 350px;
+      display: inline-block; /* برای اینکه min-width و max-width کار کنند */
     }
 
     button {
@@ -57,7 +61,6 @@
     <h1>😭 روزشمار تا شروع مدرسه 😭</h1>
     <div id="countdown"></div>
 
-    <!-- آهنگ مدرسه -->
     <audio id="bg-music" loop>
       <source src="madrese.mp3" type="audio/mpeg">
       مرورگر شما از پخش موسیقی پشتیبانی نمی‌کند.
