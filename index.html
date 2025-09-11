@@ -10,50 +10,63 @@
       padding: 0;
       font-family: "Comic Sans MS", cursive;
       text-align: center;
-      color: white;
       background: url('rain.gif') no-repeat center center fixed;
       background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .content {
+      background: rgba(0, 0, 60, 0.8); /* سورمه‌ای نیمه‌شفاف */
+      padding: 30px;
+      border-radius: 15px;
+      color: white;
+      max-width: 90%;
     }
 
     h1 {
-      font-size: 1.8em;
-      margin-top: 20px;
+      font-size: 2.2em;
+      margin: 10px 0;
     }
 
     #countdown {
-      font-size: 1.3em;
-      margin-top: 20px;
+      font-size: 1.8em;
+      margin: 20px 0;
     }
 
     button {
       margin: 10px;
-      padding: 10px 20px;
+      padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(255, 255, 255, 0.2);
       color: white;
-      font-size: 1em;
+      font-size: 1.1em;
       cursor: pointer;
     }
 
     button:hover {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(255, 255, 255, 0.4);
     }
   </style>
 </head>
 <body>
-  <h1>😭 روزشمار تا شروع مدرسه 😭</h1>
-  <div id="countdown"></div>
+  <div class="content">
+    <h1>😭 روزشمار تا شروع مدرسه 😭</h1>
+    <div id="countdown"></div>
 
-  <!-- آهنگ مدرسه -->
-  <audio id="bg-music" loop>
-    <source src="madrese.mp3" type="audio/mpeg">
-    مرورگر شما از پخش موسیقی پشتیبانی نمی‌کند.
-  </audio>
+    <!-- آهنگ مدرسه -->
+    <audio id="bg-music" loop>
+      <source src="madrese.mp3" type="audio/mpeg">
+      مرورگر شما از پخش موسیقی پشتیبانی نمی‌کند.
+    </audio>
 
-  <br>
-  <button onclick="document.getElementById('bg-music').play()">▶️ پخش آهنگ</button>
-  <button onclick="document.getElementById('bg-music').pause()">⏸️ توقف</button>
+    <br>
+    <button onclick="document.getElementById('bg-music').play()">▶️ پخش آهنگ</button>
+    <button onclick="document.getElementById('bg-music').pause()">⏸️ توقف</button>
+  </div>
 
   <script>
     // شمارش معکوس
