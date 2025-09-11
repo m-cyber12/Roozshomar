@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>روز شمار تا شروع مدرسه</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Comic Sans MS", cursive;
+      text-align: center;
+      color: white;
+      background: url('rain.gif') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      margin-top: 20px;
+    }
+
+    #countdown {
+      font-size: 1.3em;
+      margin-top: 20px;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <h1>😭 روزشمار تا شروع مدرسه 😭</h1>
+  <div id="countdown"></div>
+
+  <!-- آهنگ مدرسه -->
+  <audio id="bg-music" loop>
+    <source src="madrese.mp3" type="audio/mpeg">
+    مرورگر شما از پخش موسیقی پشتیبانی نمی‌کند.
+  </audio>
+
+  <br>
+  <button onclick="document.getElementById('bg-music').play()">▶️ پخش آهنگ</button>
+  <button onclick="document.getElementById('bg-music').pause()">⏸️ توقف</button>
+
+  <script>
+    // شمارش معکوس
+    function startCountdown(targetDate) {
+      function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+
+        if (distance < 0) {
+          document.getElementById("countdown").innerHTML = "مدرسه شروع شد 😭";
+          return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("countdown").innerHTML =
+          `روز ${days} ساعت ${hours} دقیقه ${minutes} ثانیه ${seconds} مانده 😐`;
+      }
+
+      setInterval(updateCountdown, 1000);
+    }
+
+    // تاریخ شروع مدرسه (۱ مهر ۱۴۰۴ → 22 سپتامبر 2025)
+    startCountdown(new Date("Sep 22, 2025 00:00:00").getTime());
+  </script>
+</body>
+</html>
