@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mehr 1 :: Final Boss Countdown</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1319;
+    --bg2:#1a212c;
+    --accent:#c9622d;
+    --gold:#d4a64a;
+    --boss:#b23a2e;
+    --teal:#3f8f86;
+    --text:#f3efe7;
+    --muted:#9aa3ad;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+  .fixed{position:fixed;inset:0;}
+
+  /* ---------- shared bg photo layers (used by intro + main) ---------- */
+  .bg-photo{position:fixed;inset:0;z-index:0;overflow:hidden;}
+  .bg-layer{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;
+    filter:blur(3px) brightness(0.55) saturate(1.12);transition:opacity 1.1s ease;transform:scale(1.04);}
+  .bg-layer.active{opacity:1;}
+
+  /* ================= INTRO SCREEN ================= */
+  #intro-screen{z-index:50;transition:opacity .5s ease;}
+  #intro-screen.hide{opacity:0;pointer-events:none;}
+  .intro-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:6vh 8vw;}
+  .play-btn{width:84px;height:84px;border-radius:50%;border:2px solid var(--gold);
+    background:rgba(212,166,74,0.15);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 0 0 rgba(212,166,74,0.5);animation:pulse-ring 2.2s infinite;cursor:pointer;}
+  .play-btn .tri{width:0;height:0;border-top:15px solid transparent;border-bottom:15px solid transparent;border-left:24px solid var(--gold);margin-left:6px;}
+  @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(212,166,74,0.45);}70%{box-shadow:0 0 0 22px rgba(212,166,74,0);}100%{box-shadow:0 0 0 0 rgba(212,166,74,0);}}
+  .eyebrow{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;font-size:clamp(11px,1.6vw,13px);color:var(--gold);
+    text-shadow:0 1px 6px rgba(0,0,0,0.7);}
+  .intro-inner h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(24px,7vw,40px);letter-spacing:0.03em;
+    background:linear-gradient(90deg,var(--text),var(--gold) 55%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 3px 10px rgba(0,0,0,0.7));}
+  .intro-inner .sub{color:var(--muted);font-size:clamp(13px,2vw,15px);font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,0.7);}
+
+  /* ================= VIDEO SCREEN ================= */
+  #video-screen{z-index:40;opacity:0;pointer-events:none;transition:opacity .6s ease;background:#000;}
+  #video-screen.show{opacity:1;pointer-events:auto;}
+  #intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .video-hud-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;z-index:2;}
+  .live-tag{display:flex;align-items:center;gap:7px;font-family:'Rajdhani';font-weight:700;letter-spacing:0.18em;font-size:12px;color:var(--text);
+    background:rgba(0,0,0,0.35);padding:6px 10px;border-radius:20px;backdrop-filter:blur(6px);}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:var(--boss);animation:blink 1.1s infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+  #skip-btn{font-family:'Rajdhani';font-weight:700;letter-spacing:0.1em;font-size:12px;color:var(--text);
+    background:rgba(0,0,0,0.35);border:1px solid rgba(212,166,74,0.5);padding:7px 14px;border-radius:20px;
+    backdrop-filter:blur(6px);opacity:0;transition:opacity .4s;cursor:pointer;}
+  #skip-btn.visible{opacity:1;}
+  .video-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.15);z-index:2;}
+  .video-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--gold));}
+
+  /* ================= MAIN (COUNTDOWN) SCREEN ================= */
+  #main-screen{z-index:10;}
+  #bg-canvas{position:fixed;inset:0;z-index:1;}
+  #rain-canvas{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0.25;mix-blend-mode:screen;}
+  .tint-boss{position:fixed;inset:0;z-index:3;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 30%,transparent 35%,rgba(178,58,46,0.38) 100%);opacity:0;transition:opacity .8s;}
+  body.boss-mode .tint-boss{opacity:1;}
+  .flash{position:fixed;inset:0;z-index:35;background:#fff;opacity:0;pointer-events:none;}
+  .flash.go{animation:flash-pulse .35s ease;}
+  @keyframes flash-pulse{0%{opacity:0;}30%{opacity:.55;}100%{opacity:0;}}
+
+  .scene{position:relative;z-index:5;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:clamp(90px,15vh,150px) 5vw clamp(18px,3vh,30px);text-align:center;gap:clamp(14px,2.4vh,22px);}
+  .scene>*{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s cubic-bezier(.22,1,.36,1);}
+  .scene.reveal>*{opacity:1;transform:translateY(0);}
+  .scene.reveal>*:nth-child(1){transition-delay:.05s;}
+  .scene.reveal>*:nth-child(2){transition-delay:.15s;}
+  .scene.reveal>*:nth-child(3){transition-delay:.25s;}
+  .scene.reveal>*:nth-child(4){transition-delay:.35s;}
+  .scene.reveal>*:nth-child(5){transition-delay:.45s;}
+  .scene.reveal>*:nth-child(6){transition-delay:.55s;}
+  .scene.reveal>*:nth-child(7){transition-delay:.65s;}
+
+  .badge{font-family:'Rajdhani';font-weight:700;letter-spacing:0.22em;font-size:11px;color:var(--gold);
+    border:1px solid rgba(212,166,74,0.45);background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:20px;text-transform:uppercase;}
+  .headline{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(22px,6.2vw,38px);line-height:1.2;letter-spacing:0.01em;
+    background:linear-gradient(90deg,var(--text),var(--gold) 55%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 3px 10px rgba(0,0,0,0.65));}
+  .caption{color:var(--muted);font-size:clamp(13px,2vw,15px);font-weight:600;min-height:20px;transition:opacity .3s;text-shadow:0 2px 8px rgba(0,0,0,0.8);}
+
+  /* ---- draggable timer cards: bubble (safe) <-> ember/fire (boss) ---- */
+  .sticky-layer{position:fixed;inset:0;z-index:7;pointer-events:none;}
+  .sticky{position:fixed;width:84px;height:84px;border-radius:50%;overflow:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:grab;touch-action:none;user-select:none;pointer-events:auto;
+    background:radial-gradient(circle at 30% 26%,#fff 0%,rgba(255,255,255,0.65) 16%,rgba(var(--tint),0.3) 45%,rgba(var(--tint),0.16) 75%,rgba(255,255,255,0.4) 100%);
+    border:1px solid rgba(255,255,255,0.6);
+    box-shadow:inset -6px -8px 16px rgba(255,255,255,0.5),inset 6px 10px 20px rgba(var(--tint),0.3),0 10px 22px rgba(0,0,0,0.3);
+    color:#1c2430;opacity:0;
+    transition:box-shadow .2s,border-radius .5s ease,background .5s ease,color .5s ease,opacity .6s ease,transform .5s cubic-bezier(.34,1.56,.64,1);}
+  .sticky.reveal{opacity:1;}
+  .sticky.dragging{cursor:grabbing;box-shadow:0 16px 34px rgba(0,0,0,0.6);z-index:9;transition:box-shadow .2s,transform .08s ease;}
+  .sticky .fire-bg{position:absolute;inset:-15%;width:130%;height:130%;object-fit:cover;opacity:0;transition:opacity .6s ease;z-index:0;}
+  .sticky .scrim{position:absolute;inset:0;background:rgba(10,5,2,0);transition:background .6s ease;z-index:1;}
+  .sticky .num{position:relative;z-index:2;font-family:'Orbitron',sans-serif;font-weight:800;font-size:25px;font-variant-numeric:tabular-nums;line-height:1;}
+  .sticky .label{position:relative;z-index:2;font-family:'Rajdhani';font-weight:700;font-size:10px;letter-spacing:0.14em;margin-top:4px;opacity:0.8;}
+  #sticky-layer .sticky:nth-child(1){transition-delay:.2s;}
+  #sticky-layer .sticky:nth-child(2){transition-delay:.32s;}
+  #sticky-layer .sticky:nth-child(3){transition-delay:.44s;}
+  #sticky-layer .sticky:nth-child(4){transition-delay:.56s;}
+  body.boss-mode .sticky{border-radius:14px;background:#1a0d06;border-color:rgba(255,180,120,0.4);
+    box-shadow:0 10px 26px rgba(0,0,0,0.55),0 0 26px rgba(var(--tint),0.4);color:#ffe9c7;}
+  body.boss-mode .sticky .fire-bg{opacity:1;}
+  body.boss-mode .sticky .scrim{background:rgba(10,5,2,0.34);}
+
+  /* ---- mode toggle ---- */
+  .mode-toggle{display:flex;border:1px solid rgba(212,166,74,0.35);border-radius:20px;overflow:hidden;background:rgba(0,0,0,0.35);cursor:pointer;}
+  .mode-toggle .opt{font-family:'Rajdhani';font-weight:700;font-size:12px;letter-spacing:0.08em;padding:8px 14px;color:var(--muted);transition:all .3s;}
+  .mode-toggle .opt.active{background:var(--gold);color:#14181f;}
+  body.boss-mode .mode-toggle .opt.safe.active{background:transparent;color:var(--muted);}
+  body.boss-mode .mode-toggle .opt.boss{background:var(--boss);color:#fff;}
+
+  /* ---- loadout / mini-game ---- */
+  .loadout{padding:12px 16px;border-radius:14px;border:1px solid rgba(212,166,74,0.2);
+    background:linear-gradient(rgba(15,19,25,0.78),rgba(15,19,25,0.78)), var(--wood-url) center/cover;}
+  .loadout-title{font-family:'Rajdhani';font-weight:700;letter-spacing:0.16em;font-size:11px;color:var(--gold);}
+  .loadout-title span{color:var(--text);}
+  .loadout-hint{font-family:'Rajdhani';font-size:10px;color:var(--muted);margin:3px 0 9px;font-weight:600;}
+  .slots{display:flex;gap:clamp(8px,2.4vw,16px);justify-content:center;}
+  .slot{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:8px 12px;min-width:56px;}
+  .slot img{width:34px;height:34px;object-fit:contain;}
+  .slot span{font-family:'Orbitron';font-size:15px;font-weight:800;color:var(--gold);}
+  @keyframes bump{0%{transform:scale(1);}45%{transform:scale(1.45);}100%{transform:scale(1);}}
+  .slot.pop span{animation:bump .35s ease;}
+
+  /* ---- progress ---- */
+  .progress-wrap{width:min(420px,82vw);}
+  .progress-track{height:6px;border-radius:6px;background:rgba(255,255,255,0.08);overflow:hidden;}
+  .progress-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--teal),var(--gold),var(--accent));width:0%;transition:width 1s linear;}
+  .progress-caption{font-family:'Rajdhani';font-size:11px;letter-spacing:0.08em;color:var(--muted);margin-top:7px;font-weight:600;}
+
+  .hint{font-family:'Rajdhani';font-size:11px;color:var(--muted);opacity:0.85;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,0.8);}
+
+  /* ================= BOSS BANNER (finale) ================= */
+  #boss-banner{display:none;position:fixed;inset:0;z-index:60;background:rgba(10,6,5,0.88);backdrop-filter:blur(8px);
+    align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:6vh 8vw;}
+  #boss-banner img{width:min(220px,55vw);border-radius:16px;box-shadow:0 0 60px rgba(178,58,46,0.6);}
+  #boss-banner h2{font-family:'Orbitron';font-weight:900;color:var(--gold);font-size:clamp(24px,6.5vw,42px);}
+  #boss-banner p{font-family:'Rajdhani';font-weight:600;color:var(--text);font-size:clamp(13px,2.4vw,16px);}
+</style>
+</head>
+<body class="boss-mode" style="--wood-url:url(wood.jpg)">
+
+<!-- ================= INTRO ================= -->
+<div id="intro-screen" class="fixed">
+  <div class="bg-photo"><div class="bg-layer active" style="background-image:url(devil.jpg)"></div></div>
+  <div class="intro-inner">
+    <div class="eyebrow">Cinematic Intro</div>
+    <button id="play-btn" class="play-btn"><div class="tri"></div></button>
+    <h1>TAP TO BEGIN</h1>
+    <div class="sub">🔊 Turn your sound on</div>
+  </div>
+</div>
+
+<!-- ================= VIDEO ================= -->
+<div id="video-screen" class="fixed">
+  <video id="intro-video" src="intro.mp4" playsinline webkit-playsinline></video>
+  <div class="video-hud-top">
+    <div class="live-tag"><span class="live-dot"></span>PLAYING</div>
+    <button id="skip-btn">SKIP ⏭</button>
+  </div>
+  <div class="video-progress"><div class="video-progress-fill" id="video-progress-fill"></div></div>
+</div>
+
+<!-- ================= MAIN / COUNTDOWN ================= -->
+<div id="main-screen" class="fixed">
+  <div class="bg-photo">
+    <div class="bg-layer bg-safe" style="background-image:url(classroom.jpg)"></div>
+    <div class="bg-layer bg-boss active" style="background-image:url(devil.jpg)"></div>
+  </div>
+  <canvas id="bg-canvas"></canvas>
+  <canvas id="rain-canvas"></canvas>
+  <div class="tint-boss"></div>
+  <div class="flash" id="flash"></div>
+
+  <div class="scene">
+    <div class="badge">MEHR 1 · 1405</div>
+    <div class="headline">FINAL BOSS ARRIVES IN</div>
+    <div class="caption" id="caption">Professor Inferno is sharpening the chalk. 🔥</div>
+
+    <button class="mode-toggle" id="mode-toggle">
+      <span class="opt safe">🛡 SAFE ZONE</span><span class="opt boss active">😈 BOSS PREVIEW</span>
+    </button>
+
+    <div class="loadout">
+      <div class="loadout-title">YOUR LOADOUT · <span id="loadout-total">0</span> COLLECTED</div>
+      <div class="loadout-hint">tap the falling items to collect them</div>
+      <div class="slots">
+        <div class="slot"><img id="icon-img-backpack" src="icon-backpack.png"><span id="count-backpack">0</span></div>
+        <div class="slot"><img id="icon-img-pencil" src="icon-pencil.png"><span id="count-pencil">0</span></div>
+        <div class="slot"><img id="icon-img-apple" src="icon-apple.png"><span id="count-apple">0</span></div>
+        <div class="slot"><img id="icon-img-book" src="icon-book.png"><span id="count-book">0</span></div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-caption" id="progress-caption">CALCULATING…</div>
+    </div>
+
+    <div class="hint">Tip: drag the cards anywhere · tap falling items to collect them</div>
+  </div>
+
+  <div class="sticky-layer" id="sticky-layer">
+    <div class="sticky" id="card-d" data-rot="-6" style="--tint:212,166,74"><video class="fire-bg" muted loop playsinline></video><div class="scrim"></div><div class="num" id="d">00</div><div class="label">DAYS</div></div>
+    <div class="sticky" id="card-h" data-rot="4" style="--tint:201,98,45"><video class="fire-bg" muted loop playsinline></video><div class="scrim"></div><div class="num" id="h">00</div><div class="label">HRS</div></div>
+    <div class="sticky" id="card-m" data-rot="-4" style="--tint:63,143,134"><video class="fire-bg" muted loop playsinline></video><div class="scrim"></div><div class="num" id="m">00</div><div class="label">MIN</div></div>
+    <div class="sticky" id="card-s" data-rot="7" style="--tint:178,58,46"><video class="fire-bg" muted loop playsinline></video><div class="scrim"></div><div class="num" id="s">00</div><div class="label">SEC</div></div>
+  </div>
+</div>
+
+<!-- ================= FINALE ================= -->
+<div id="boss-banner">
+  <img src="devil.jpg" alt="">
+  <h2>THE BOSS HAS SPAWNED</h2>
+  <p>First bell. First day. Good luck out there.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============ sequence: intro -> video -> main ============ */
+const introScreen = document.getElementById('intro-screen');
+const videoScreen = document.getElementById('video-screen');
+const playBtn = document.getElementById('play-btn');
+const video = document.getElementById('intro-video');
+const skipBtn = document.getElementById('skip-btn');
+const videoFill = document.getElementById('video-progress-fill');
+let mainVisible = false;
+
+setTimeout(()=>skipBtn.classList.add('visible'), 1500);
+
+function goToMain(){
+  videoScreen.classList.remove('show');
+  try{ video.pause(); }catch(e){}
+  mainVisible = true;
+  document.querySelector('.scene').classList.add('reveal');
+  revealStickies();
+}
+
+playBtn.addEventListener('click', ()=>{
+  video.muted = false;
+  videoScreen.classList.add('show');
+  introScreen.classList.add('hide');
+  video.play().catch(()=>{ goToMain(); });
+});
+
+skipBtn.addEventListener('click', goToMain);
+video.addEventListener('ended', goToMain);
+video.addEventListener('timeupdate', ()=>{
+  if(video.duration){ videoFill.style.width = (video.currentTime/video.duration*100)+'%'; }
+});
+
+/* ============ countdown target: 1 Mehr 1405 = Sep 23 2026 (Tehran) ============ */
+const TARGET = new Date('2026-09-23T00:00:00+03:30');
+const PREV_MEHR = new Date('2025-09-23T00:00:00+03:30');
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function updateCountdown(){
+  const now = new Date();
+  let diff = TARGET - now;
+  if (diff <= 0){
+    document.getElementById('boss-banner').style.display = 'flex';
+    ['d','h','m','s'].forEach(id=>document.getElementById(id).textContent='00');
+    return;
+  }
+  const sec = Math.floor(diff/1000);
+  const days = Math.floor(sec/86400);
+  const hours = Math.floor((sec%86400)/3600);
+  const mins = Math.floor((sec%3600)/60);
+  const secs = sec%60;
+  document.getElementById('d').textContent = days>99 ? String(days) : pad(days);
+  document.getElementById('h').textContent = pad(hours);
+  document.getElementById('m').textContent = pad(mins);
+  document.getElementById('s').textContent = pad(secs);
+
+  const total = TARGET - PREV_MEHR;
+  const elapsed = now - PREV_MEHR;
+  const pct = Math.min(100, Math.max(0, (elapsed/total)*100));
+  document.getElementById('progress-fill').style.width = pct.toFixed(1)+'%';
+  document.getElementById('progress-caption').textContent = pct.toFixed(1)+'% OF THE SCHOOL YEAR ELAPSED';
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+/* ============ mode toggle (safe / boss) ============ */
+const modeToggle = document.getElementById('mode-toggle');
+const bgSafe = document.querySelector('.bg-safe');
+const bgBoss = document.querySelector('.bg-boss');
+const caption = document.getElementById('caption');
+const flash = document.getElementById('flash');
+const CAPTIONS = {
+  safe: "New notebooks. Clean slate. Zero regrets… yet.",
+  boss: "Professor Inferno is sharpening the chalk. 🔥"
+};
+let bossMode = true;
+modeToggle.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  bossMode = !bossMode;
+  document.body.classList.toggle('boss-mode', bossMode);
+  bgSafe.classList.toggle('active', !bossMode);
+  bgBoss.classList.toggle('active', bossMode);
+  document.querySelector('.opt.safe').classList.toggle('active', !bossMode);
+  document.querySelector('.opt.boss').classList.toggle('active', bossMode);
+  caption.style.opacity = 0;
+  setTimeout(()=>{ caption.textContent = bossMode ? CAPTIONS.boss : CAPTIONS.safe; caption.style.opacity = 1; }, 200);
+  flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go');
+});
+
+/* ============ draggable timer cards ============ */
+function layoutInitial(){
+  const notes = [...document.querySelectorAll('.sticky')];
+  const cx = window.innerWidth/2, cy = window.innerHeight*0.42;
+  const spread = Math.min(85, window.innerWidth*0.21);
+  const offsets = [{x:-1.6,y:-8},{x:-0.55,y:10},{x:0.55,y:-10},{x:1.6,y:8}];
+  notes.forEach((el,i)=>{
+    const w = el.offsetWidth||84, h = el.offsetHeight||84;
+    const x = cx + offsets[i].x*spread - w/2;
+    const y = cy + offsets[i].y - h/2;
+    el.style.left = x+'px';
+    el.style.top = y+'px';
+    const rot = el.dataset.rot;
+    el.style.transform = 'rotate('+rot+'deg) scale(0.15)';
+  });
+}
+function revealStickies(){
+  document.querySelectorAll('.sticky').forEach(el=>{
+    el.classList.add('reveal');
+    el.style.transform = 'rotate('+el.dataset.rot+'deg) scale(1)';
+  });
+}
+function makeDraggable(el){
+  let dragging=false, offsetX=0, offsetY=0;
+  const rot = el.dataset.rot || 0;
+  el.addEventListener('pointerdown', (e)=>{
+    dragging = true;
+    el.setPointerCapture(e.pointerId);
+    const rect = el.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    el.classList.add('dragging');
+    el.style.transform = 'rotate('+rot+'deg) scale(1.08)';
+    e.stopPropagation();
+  });
+  el.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    let x = e.clientX - offsetX;
+    let y = e.clientY - offsetY;
+    x = Math.max(4, Math.min(window.innerWidth - el.offsetWidth - 4, x));
+    y = Math.max(4, Math.min(window.innerHeight - el.offsetHeight - 4, y));
+    el.style.left = x+'px';
+    el.style.top = y+'px';
+    e.stopPropagation();
+  });
+  function endDrag(e){
+    if(!dragging) return;
+    dragging=false;
+    el.classList.remove('dragging');
+    el.style.transform = 'rotate('+rot+'deg) scale(1)';
+    e.stopPropagation();
+  }
+  el.addEventListener('pointerup', endDrag);
+  el.addEventListener('pointercancel', endDrag);
+}
+document.querySelectorAll('.sticky').forEach(makeDraggable);
+layoutInitial();
+
+/* ============ three.js: falling leaves + collectible game ============ */
+const canvas = document.getElementById('bg-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0,0.4,9);
+
+scene.add(new THREE.AmbientLight(0x33301f,0.6));
+const warmLight = new THREE.PointLight(0xd4a64a,1.6,20); warmLight.position.set(3,4,5); scene.add(warmLight);
+const coolLight = new THREE.PointLight(0x3f6e69,0.8,20); coolLight.position.set(-4,-2,-3); scene.add(coolLight);
+
+/* ---- falling leaves (ambient, non-interactive) ---- */
+function makeLeafTexture(color){
+  const c=document.createElement('canvas'); c.width=c.height=64;
+  const ctx=c.getContext('2d'); ctx.translate(32,32); ctx.rotate(Math.PI/4);
+  ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(0,-26);
+  ctx.quadraticCurveTo(22,-10,0,26); ctx.quadraticCurveTo(-22,-10,0,-26); ctx.fill();
+  return new THREE.CanvasTexture(c);
+}
+const leafTextures = ['#c9622d','#d4a64a','#8c4a2b'].map(makeLeafTexture);
+const leaves = [];
+for(let i=0;i<40;i++){
+  const mat = new THREE.MeshBasicMaterial({map:leafTextures[i%leafTextures.length],transparent:true,side:THREE.DoubleSide,depthWrite:false});
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.32,0.32), mat);
+  resetLeaf(mesh, true); leaves.push(mesh); scene.add(mesh);
+}
+function resetLeaf(mesh, randomHeight){
+  mesh.position.set((Math.random()-0.5)*14, randomHeight?Math.random()*10:6+Math.random()*2, (Math.random()-0.5)*6-2);
+  mesh.userData.speed = 0.006+Math.random()*0.01;
+  mesh.userData.sway = Math.random()*Math.PI*2;
+  mesh.userData.swaySpeed = 0.01+Math.random()*0.02;
+  mesh.userData.rotSpeed = (Math.random()-0.5)*0.03;
+  mesh.rotation.z = Math.random()*Math.PI*2;
+}
+function animateLeaves(){
+  leaves.forEach(mesh=>{
+    mesh.position.y -= mesh.userData.speed*4;
+    mesh.userData.sway += mesh.userData.swaySpeed;
+    mesh.position.x += Math.sin(mesh.userData.sway)*0.006;
+    mesh.rotation.z += mesh.userData.rotSpeed;
+    if(mesh.position.y < -6){ resetLeaf(mesh, false); }
+  });
+}
+
+/* ---- collectible mini-game: tap falling school supplies to fill your loadout ---- */
+const iconSrcs = {
+  backpack: document.getElementById('icon-img-backpack').src,
+  pencil: document.getElementById('icon-img-pencil').src,
+  apple: document.getElementById('icon-img-apple').src,
+  book: document.getElementById('icon-img-book').src
+};
+const types = Object.keys(iconSrcs);
+const iconAspect = {backpack:1,pencil:1,apple:1,book:1};
+const iconTextures = {};
+const texLoader = new THREE.TextureLoader();
+types.forEach(key=>{
+  iconTextures[key] = texLoader.load(iconSrcs[key], (tex)=>{ iconAspect[key] = tex.image.height/tex.image.width; });
+});
+
+/* ---- fire loop for timer cards in boss mode ---- */
+const FIRE_SRC = "fire.mp4";
+document.querySelectorAll('.sticky .fire-bg').forEach(v=>{
+  v.src = FIRE_SRC;
+  v.play().catch(()=>{});
+});
+
+const loadoutCounts = {backpack:0,pencil:0,apple:0,book:0};
+const collectibles = [];
+const COLLECT_COUNT = 7;
+function spawnCollectible(mesh){
+  const type = types[Math.floor(Math.random()*types.length)];
+  mesh.material.map = iconTextures[type];
+  mesh.material.needsUpdate = true;
+  mesh.material.opacity = 1;
+  mesh.userData.type = type;
+  mesh.userData.baseScale = 0.55 + Math.random()*0.3;
+  mesh.userData.collected = false;
+  mesh.position.set((Math.random()-0.5)*10, 8+Math.random()*7, (Math.random()-0.5)*4-1);
+  mesh.userData.speed = 0.0035+Math.random()*0.005;
+  mesh.userData.sway = Math.random()*Math.PI*2;
+  mesh.userData.swaySpeed = 0.008+Math.random()*0.015;
+  const asp = iconAspect[type]||1;
+  mesh.scale.set(mesh.userData.baseScale, mesh.userData.baseScale*asp, 1);
+}
+for(let i=0;i<COLLECT_COUNT;i++){
+  const mat = new THREE.MeshBasicMaterial({transparent:true, side:THREE.DoubleSide, depthWrite:false});
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1,1), mat);
+  mesh.userData.isCollectible = true;
+  spawnCollectible(mesh);
+  mesh.position.y -= i*2.2; // stagger initial heights so they don't fall in sync
+  scene.add(mesh);
+  collectibles.push(mesh);
+}
+function animateCollectibles(){
+  collectibles.forEach(mesh=>{
+    if(mesh.userData.collected) return;
+    mesh.position.y -= mesh.userData.speed*4;
+    mesh.userData.sway += mesh.userData.swaySpeed;
+    mesh.position.x += Math.sin(mesh.userData.sway)*0.004;
+    mesh.rotation.z = Math.sin(mesh.userData.sway*0.5)*0.15;
+    const asp = iconAspect[mesh.userData.type]||1;
+    const pulse = 1 + Math.sin(t*3+mesh.userData.sway)*0.07;
+    const s = mesh.userData.baseScale*pulse;
+    mesh.scale.set(s, s*asp, 1);
+    if(mesh.position.y < -6){ spawnCollectible(mesh); }
+  });
+}
+function collectItem(mesh){
+  if(mesh.userData.collected) return;
+  mesh.userData.collected = true;
+  const type = mesh.userData.type;
+  loadoutCounts[type]++;
+  const countEl = document.getElementById('count-'+type);
+  if(countEl){
+    countEl.textContent = loadoutCounts[type];
+    const slot = countEl.parentElement;
+    slot.classList.remove('pop'); void slot.offsetWidth; slot.classList.add('pop');
+  }
+  const total = Object.values(loadoutCounts).reduce((a,b)=>a+b,0);
+  document.getElementById('loadout-total').textContent = total;
+
+  const startX = mesh.scale.x, startY = mesh.scale.y;
+  let k = 1;
+  const grow = setInterval(()=>{
+    k += 0.22;
+    mesh.scale.set(startX*k, startY*k, 1);
+    mesh.material.opacity -= 0.18;
+    if(mesh.material.opacity <= 0){
+      clearInterval(grow);
+      spawnCollectible(mesh);
+    }
+  }, 28);
+}
+
+/* ---- tap handling: catch falling collectibles ---- */
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+function handleTap(x,y){
+  if(!mainVisible) return;
+  pointer.x=(x/window.innerWidth)*2-1; pointer.y=-(y/window.innerHeight)*2+1;
+  raycaster.setFromCamera(pointer, camera);
+  const collectHits = raycaster.intersectObjects(collectibles, true);
+  if(collectHits.length){ collectItem(collectHits[0].object); return; }
+}
+window.addEventListener('pointerdown', e=>handleTap(e.clientX,e.clientY));
+
+/* ============ rain overlay ============ */
+const rainCanvas = document.getElementById('rain-canvas');
+const rctx = rainCanvas.getContext('2d');
+let drops = [];
+function initRain(){
+  rainCanvas.width = window.innerWidth; rainCanvas.height = window.innerHeight;
+  const count = Math.floor(window.innerWidth/14);
+  drops = new Array(count).fill(0).map(()=>({x:Math.random()*rainCanvas.width,y:Math.random()*rainCanvas.height,len:10+Math.random()*18,speed:4+Math.random()*6}));
+}
+function drawRain(){
+  rctx.clearRect(0,0,rainCanvas.width,rainCanvas.height);
+  rctx.strokeStyle='rgba(160,190,210,0.5)'; rctx.lineWidth=1;
+  drops.forEach(d=>{
+    rctx.beginPath(); rctx.moveTo(d.x,d.y); rctx.lineTo(d.x-2,d.y+d.len); rctx.stroke();
+    d.y += d.speed; d.x -= 0.6;
+    if(d.y > rainCanvas.height){ d.y=-d.len; d.x=Math.random()*rainCanvas.width; }
+  });
+}
+initRain();
+
+let t = 0;
+function loop(){
+  t += 0.01;
+  animateLeaves();
+  animateCollectibles();
+  drawRain();
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+loop();
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  initRain();
+  document.querySelectorAll('.sticky').forEach(el=>{
+    let x = parseFloat(el.style.left)||0, y = parseFloat(el.style.top)||0;
+    x = Math.max(4, Math.min(window.innerWidth - el.offsetWidth - 4, x));
+    y = Math.max(4, Math.min(window.innerHeight - el.offsetHeight - 4, y));
+    el.style.left = x+'px'; el.style.top = y+'px';
+  });
+});
+</script>
+</body>
+</html>
